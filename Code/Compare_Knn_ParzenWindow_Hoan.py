@@ -10,9 +10,11 @@ import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import RadiusNeighborsClassifier
 import math
+import sys
 import numpy as np
 from sklearn.model_selection import train_test_split
 import operator
+import random
 from random import choices
 from sklearn.metrics.cluster import adjusted_rand_score
 from sklearn.neighbors import NearestNeighbors
@@ -56,9 +58,14 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train):
         Y_train_temp = np.append(Y_train_temp, [y_predict], axis =0)
     return Y_predict
 #%% 
-def SplitData(X, Y):
+def SplitData(X, Y, random_seed=999):
+    if random_seed != -1:
+        random.seed(random_seed) # use user random seed
+    else:
+        print("generate train and test data with seed number: ", random_seed)
     Y_all_labels = list(set(Y))
     leave_out_classes = list(set(choices(Y_all_labels, k=int(len(Y_all_labels)/2))))
+    print(leave_out_classes)
     X_train_all, X_test_all, Y_train_all, Y_test_all = train_test_split(X, Y, test_size = 0.05, random_state = 0)
     indices_leave_out = []
     for leave_out_class in leave_out_classes:
@@ -72,57 +79,87 @@ def SplitData(X, Y):
 #%%
 def listToStringWithoutBrackets(list1):
     return str(list1).replace('[','').replace(']','')    
+
+def matchLabel(Y_labels, Y_ref):
+    # this function changes clusters' label of Y_labels s.t ARI(Y_labels, Y_ref) is maximal.
+    Y_labels_set = np.unique(Y_labels)
+    Y_ref_set = np.unique(Y_ref)
+    Y_result = np.copy(Y_labels)
+    for x in Y_labels_set:
+        arg_index = -1
+        max_value = -1
+        for y in Y_ref_set:
+            setA = (Y_labels == x)
+            setB = (Y_ref == y)
+            sumAB = np.sum(setA*setB)
+            if sumAB > max_value:
+                max_value = sumAB 
+                arg_index = y
+        Y_result[Y_labels==x] = arg_index #replace x in Y_labels by arg_index
+    return Y_result
+
 #%% 
 for fileName in ["pollen-prepare-log_count_100pca.csv"]:   
-    times = 20    
+    data_seed = int(sys.argv[1])
+    times = 1    
+    cross_validation_times = 3
     k_set =  [k+1 for k in range(10, 40)] 
     df = pd.read_csv(fileName)
     XY= df.values
     X= XY[:,1:]
-    Y= XY[:,0]
+    Y= XY[:,0].astype(int)
     epsilon_set = [LearnEpsilon(k, X) for k in k_set]
-    ARI_KNeighborsClassifier = []
+    ARI_merge_clusters = []
     ARI_SequentialRadiusNeighborsClassifier = []
-    # Size_SequentialRadiusNeighborsClassifier = []
     for repeat_time in range(times):
-        X_train, X_test, Y_train, Y_test = SplitData(X, Y)
+        data_seed += repeat_time
+        print("data_seed: ", data_seed)
+        X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
         # Run internal cross validation to choose K and epsilon   
-        ARI_Knn_repeat = [0 for k in k_set]
         ARI_Srn_repeat = [0 for k in k_set]
-        for repeat_val in range(times):
-            # Size_Srn_repeat = [] 
+        ARI_Srn_merge_clusters_repeat = [0 for k in k_set]
+        for repeat_val in range(cross_validation_times):
             print("We are in repeat_time and repeat_val:", repeat_time +1, repeat_val +1)
-            X_train_val, X_test_val, Y_train_val, Y_test_val = SplitData(X_train, Y_train)
+            X_train_val, X_test_val, Y_train_val, Y_test_val = SplitData(X_train, Y_train, random_seed=repeat_val+100) # does this really improve the results?
             for ind in range(len(k_set)):
-                Knn = KNeighborsClassifier(n_neighbors=k_set[ind], algorithm='auto')
-                Knn.fit(X_train_val, Y_train_val)
-                Y_predict_Knn = Knn.predict(X_test_val)
                 Y_predict = SequentialRadiusNeighborsClassifier(epsilon_set[ind], X_train_val, X_test_val, Y_train_val)
-                ARI_Knn_repeat[ind] += adjusted_rand_score(Y_predict_Knn, Y_test_val)               
                 ARI_Srn_repeat[ind] += adjusted_rand_score(Y_predict, Y_test_val)
-        k_optimal = k_set[ARI_Knn_repeat.index(max(ARI_Knn_repeat))] 
+                # compute for merge clusters
+                if ind==0:
+                    print("merge label to match the ground truth")
+                Y_predict = matchLabel(Y_predict, Y_test_val)
+                ARI_Srn_merge_clusters_repeat[ind] += adjusted_rand_score(Y_predict, Y_test_val)
         epsilon_optimal = epsilon_set[ARI_Srn_repeat.index(max(ARI_Srn_repeat))]  
-        Knn = KNeighborsClassifier(n_neighbors=k_optimal, algorithm='auto')
-        Knn.fit(X_train, Y_train)
-        Y_predict_Knn = Knn.predict(X_test)
         Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train)
-        ARI_Knn_repeat_time = adjusted_rand_score(Y_predict_Knn, Y_test)
-        ARI_KNeighborsClassifier.append(ARI_Knn_repeat_time)
         ARI_Srn_repeat_time = adjusted_rand_score(Y_predict, Y_test)
         ARI_SequentialRadiusNeighborsClassifier.append(ARI_Srn_repeat_time)
-        print("ARI_Knn_repeat_time:", ARI_Knn_repeat_time)
+        ## Merge clusters
+        epsilon_optimal = epsilon_set[ARI_Srn_merge_clusters_repeat.index(max(ARI_Srn_merge_clusters_repeat))]  
+        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train)
+        print("merge label to match the ground truth")
+        Y_predict = matchLabel(Y_predict, Y_test)
+        ARI_Srn_merge_clusters_repeat_time = adjusted_rand_score(Y_predict, Y_test)
+        ARI_merge_clusters.append(ARI_Srn_merge_clusters_repeat_time)
+        print("-------------------------------------------------------------------")
         print("ARI_Srn_repeat_time:", ARI_Srn_repeat_time)
-    print("ARI_Srn_mean:", np.mean(ARI_KNeighborsClassifier))
-    print("ARI_Srn_mean:", np.mean(ARI_SequentialRadiusNeighborsClassifier))
-    results_save = [[fileName]]
-    results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
-    results_save += [["ARI_Srn_repeat_time"] + ARI_SequentialRadiusNeighborsClassifier]
-    results_save += [["ARI_Knn_mean"] + [np.mean(ARI_KNeighborsClassifier)]]
-    results_save += [["ARI_Srn_mean"] + [np.mean(ARI_SequentialRadiusNeighborsClassifier)]]
-    res_file = "Knn_vs_Srn_%i_%s" %(times, fileName)
-    file = open(res_file, "w")
-    file.writelines("%s\n" %listToStringWithoutBrackets(line) for line in results_save)
-    file.close()        
+        print("ARI_Srn_merge_clusters_repeat:", ARI_Srn_merge_clusters_repeat_time)
+        print("===================================================================")
+
+    print("ARI_Srn               :", (ARI_SequentialRadiusNeighborsClassifier))
+    print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
+    df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
+    df.to_csv("output/ARI_dataseed_"+str(data_seed)+"_CVsize_"+str(cross_validation_times)+".csv")
+
+    # results_save = [[fileName]]
+    # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
+    # results_save += [["ARI_Srn_repeat_time"] + ARI_SequentialRadiusNeighborsClassifier]
+    # results_save += [["ARI_Knn_mean"] + [np.mean(ARI_KNeighborsClassifier)]]
+    # results_save += [["ARI_Srn_mean"] + [np.mean(ARI_SequentialRadiusNeighborsClassifier)]]
+    # res_file = "Knn_vs_Srn_%i_%s" %(times, fileName)
+    # file = open(res_file, "w")
+    # file.writelines("%s\n" %listToStringWithoutBrackets(line) for line in results_save)
+    # file.close()        
+
 #            print("ARI score of KnnClassifier is", ARI_Knn)
 #            print("ARI score of SrnClassifier is", ARI_Srn)
 #            Size_label = len(list(set(Y_predict)))
