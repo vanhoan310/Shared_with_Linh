@@ -102,7 +102,7 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     data_seed = int(sys.argv[1])
     real_random_number = int(1000000*random.random()) # get real random number for cross validation
     times = 1    
-    cross_validation_times = 10
+    cross_validation_times = 100
     print("cross_validation_times: ", cross_validation_times)
     k_set =  [k+1 for k in range(10, 40)] 
     df = pd.read_csv(fileName)
