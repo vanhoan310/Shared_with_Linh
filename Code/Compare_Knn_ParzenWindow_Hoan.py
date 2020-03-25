@@ -58,11 +58,10 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train):
         Y_train_temp = np.append(Y_train_temp, [y_predict], axis =0)
     return Y_predict
 #%% 
-def SplitData(X, Y, random_seed=999):
+def SplitData(X, Y, random_seed=-1):
     if random_seed != -1:
-        random.seed(random_seed) # use user random seed
-    else:
         print("generate train and test data with seed number: ", random_seed)
+        random.seed(random_seed) # use user random seed
     Y_all_labels = list(set(Y))
     leave_out_classes = list(set(choices(Y_all_labels, k=int(len(Y_all_labels)/2))))
     print(leave_out_classes)
@@ -101,8 +100,10 @@ def matchLabel(Y_labels, Y_ref):
 #%% 
 for fileName in ["pollen-prepare-log_count_100pca.csv"]:   
     data_seed = int(sys.argv[1])
+    real_random_number = int(1000000*random.random()) # get real random number for cross validation
     times = 1    
-    cross_validation_times = 3
+    cross_validation_times = 10
+    print("cross_validation_times: ", cross_validation_times)
     k_set =  [k+1 for k in range(10, 40)] 
     df = pd.read_csv(fileName)
     XY= df.values
@@ -113,18 +114,18 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     ARI_SequentialRadiusNeighborsClassifier = []
     for repeat_time in range(times):
         data_seed += repeat_time
-        print("data_seed: ", data_seed)
+        # print("data_seed: ", data_seed)
         X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
         # Run internal cross validation to choose K and epsilon   
         ARI_Srn_repeat = [0 for k in k_set]
         ARI_Srn_merge_clusters_repeat = [0 for k in k_set]
         for repeat_val in range(cross_validation_times):
             print("We are in repeat_time and repeat_val:", repeat_time +1, repeat_val +1)
-            X_train_val, X_test_val, Y_train_val, Y_test_val = SplitData(X_train, Y_train, random_seed=repeat_val+100) # does this really improve the results?
+            X_train_val, X_test_val, Y_train_val, Y_test_val = SplitData(X_train, Y_train, random_seed=real_random_number+repeat_val+100) # does this really improve the results?
             for ind in range(len(k_set)):
                 Y_predict = SequentialRadiusNeighborsClassifier(epsilon_set[ind], X_train_val, X_test_val, Y_train_val)
                 ARI_Srn_repeat[ind] += adjusted_rand_score(Y_predict, Y_test_val)
-                # compute for merge clusters
+                # compute Srn for merge clusters
                 if ind==0:
                     print("merge label to match the ground truth")
                 Y_predict = matchLabel(Y_predict, Y_test_val)
@@ -148,7 +149,7 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     print("ARI_Srn               :", (ARI_SequentialRadiusNeighborsClassifier))
     print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
-    df.to_csv("output/ARI_dataseed_"+str(data_seed)+"_CVsize_"+str(cross_validation_times)+".csv")
+    df.to_csv("output/ARI_dataseed_"+str(data_seed)+"_CVsize_"+str(cross_validation_times)+".csv", index=False)
 
     # results_save = [[fileName]]
     # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
