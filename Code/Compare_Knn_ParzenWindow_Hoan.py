@@ -21,6 +21,8 @@ from sklearn.neighbors import NearestNeighbors
 from scipy.spatial import distance
 import pandas as pd
 
+from eval_bisect_louvain import * #import louvain clustering 
+
 def LearnEpsilon(k, X):
     Knn_temp = NearestNeighbors(n_neighbors=k+1)
     Knn_temp.fit(X)
@@ -102,7 +104,7 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     data_seed = int(sys.argv[1])
     real_random_number = int(1000000*random.random()) # get real random number for cross validation
     times = 1    
-    cross_validation_times = 100
+    cross_validation_times = 1
     print("cross_validation_times: ", cross_validation_times)
     k_set =  [k+1 for k in range(10, 40)] 
     df = pd.read_csv(fileName)
@@ -112,10 +114,17 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     epsilon_set = [LearnEpsilon(k, X) for k in k_set]
     ARI_merge_clusters = []
     ARI_SequentialRadiusNeighborsClassifier = []
+    ARI_louvain = []
     for repeat_time in range(times):
         data_seed += repeat_time
         # print("data_seed: ", data_seed)
         X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
+        # run Louvain algorithm
+        n_clusters = int(len(np.unique(Y_test)))
+        print("n_clusters: ", n_clusters)
+        louvain_labels = louvain_exact_K(X_test, n_clusters)
+        ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
+
         # Run internal cross validation to choose K and epsilon   
         ARI_Srn_repeat = [0 for k in k_set]
         ARI_Srn_merge_clusters_repeat = [0 for k in k_set]
@@ -148,8 +157,11 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
 
     print("ARI_Srn               :", (ARI_SequentialRadiusNeighborsClassifier))
     print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
+    print("ARI_louvain           :", ARI_louvain)
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
     df.to_csv("output/ARI_dataseed_"+str(data_seed)+"_CVsize_"+str(cross_validation_times)+".csv", index=False)
+    df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
+    df_lv.to_csv("output/ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
 
     # results_save = [[fileName]]
     # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
