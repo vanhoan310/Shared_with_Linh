@@ -155,9 +155,9 @@ for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:
     print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
 #    print("ARI_louvain           :", ARI_louvain)
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
-    df.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "ARI_dataseed_"+str(data_seed)+"_add_"+str(add)+"_eps_"+choice+".csv", index=False)
+    df.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_dataseed_"+str(data_seed)+"_add_"+str(add)+"_eps_"+choice+".csv", index=False)
     df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
-    df_lv.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
+    df_lv.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
 
     # results_save = [[fileName]]
     # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
