@@ -30,7 +30,7 @@ def LearnEpsilon(k, X):
     extrated_distances = [np.sort(x)[-1] for x in distances]
     return np.mean(extrated_distances)
 #%% Algorithm 1 
-def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train):
+def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add):
     X_train_temp =  np.copy(X_train)
     Y_train_temp =  np.copy(Y_train)
     Reps = RadiusNeighborsClassifier(radius=epsilon, weights='distance')
@@ -56,8 +56,9 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train):
             y_predict = max(Y_current) + 1
             Y_current.append(y_predict)
         Y_predict[optimal_test] = y_predict 
-        X_train_temp = np.append(X_train_temp, [X_test[optimal_test]], axis =0)
-        Y_train_temp = np.append(Y_train_temp, [y_predict], axis =0)
+        if add == 1:
+            X_train_temp = np.append(X_train_temp, [X_test[optimal_test]], axis =0)
+            Y_train_temp = np.append(Y_train_temp, [y_predict], axis =0)
     return Y_predict
 #%% 
 def SplitData(X, Y, random_seed=-1):
@@ -101,21 +102,22 @@ def matchLabel(Y_labels, Y_ref):
 
 #%% 
 for fileName in ["pollen-prepare-log_count_100pca.csv"]:  
+    add = 0
     data_seed = int(sys.argv[1])
     real_random_number = int(1000000*random.random()) # get real random number for cross validation
-    times = 1    
+    times = 1   
     df = pd.read_csv(fileName)
     XY= df.values
     X= XY[:,1:]
     Y= XY[:,0].astype(int)
     epsilon_optimal = LearnEpsilon(1, X) 
  #   for data_seed in [see for see in range(10)]: 
-    print("data_seed:", data_seed)
     ARI_merge_clusters = []
     ARI_SequentialRadiusNeighborsClassifier = []
     ARI_louvain = []
     for repeat_time in range(times):
         data_seed += repeat_time
+        print("data_seed:", data_seed)
         # print("data_seed: ", data_seed)
         X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
         # run Louvain algorithm
@@ -125,11 +127,11 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
         ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
 
         # Run internal cross validation to choose K and epsilon   
-        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train)
+        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train, add)
         ARI_Srn_repeat_time = adjusted_rand_score(Y_predict, Y_test)
         ARI_SequentialRadiusNeighborsClassifier.append(ARI_Srn_repeat_time)
         ## Merge clusters
-        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train)
+        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_optimal, X_train, X_test, Y_train, add)
         print("merge label to match the ground truth")
         Y_predict = matchLabel(Y_predict, Y_test)
         ARI_Srn_merge_clusters_repeat_time = adjusted_rand_score(Y_predict, Y_test)
@@ -138,14 +140,13 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
         print("ARI_Srn_repeat_time:", ARI_Srn_repeat_time)
         print("ARI_Srn_merge_clusters_repeat:", ARI_Srn_merge_clusters_repeat_time)
         print("===================================================================")
-
     print("ARI_Srn               :", (ARI_SequentialRadiusNeighborsClassifier))
     print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
 #    print("ARI_louvain           :", ARI_louvain)
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
-    df.to_csv("output/CV_0_Gamma_0/ARI_dataseed_"+str(data_seed)+".csv", index=False)
+    df.to_csv("output/CV_0_Gamma_0/ARI_dataseed_"+str(data_seed)+str(add)+".csv", index=False)
     df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
-    df_lv.to_csv("output/CV_0_Gamma_0/ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
+    df_lv.to_csv("output/CV_0_Gamma_0/ARI_louvain_dataseed_"+str(data_seed)+str(add)+".csv", index=False)
 
     # results_save = [[fileName]]
     # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]
@@ -156,7 +157,6 @@ for fileName in ["pollen-prepare-log_count_100pca.csv"]:
     # file = open(res_file, "w")
     # file.writelines("%s\n" %listToStringWithoutBrackets(line) for line in results_save)
     # file.close()        
-
 #            print("ARI score of KnnClassifier is", ARI_Knn)
 #            print("ARI score of SrnClassifier is", ARI_Srn)
 #            Size_label = len(list(set(Y_predict)))
