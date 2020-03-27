@@ -131,14 +131,19 @@ def matchLabel(Y_labels, Y_ref):
 #%%  # dataset: "pollen", "baron", "muraro", "patel", "xin", "zeisel"
 for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:  
     fileName = "../Data/" + prefixFileName + "-prepare-log_count_100pca.csv"
+    data_seed = int(sys.argv[1])
+    choice = sys.argv[2]
+    if choice.isdigit():
+        choice = int(choice)
+    alg = sys.argv[3]
+
     # choice = "mean",  choice = L \in [0,1]
     # alg = "srnc", alg = "svm", alg = "dt",  alg = "lr"
-    choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
-    alg = "dt" 
-    add = 1
-    alg = "srnc"
-    data_seed = int(sys.argv[1])
-    real_random_number = int(1000000*random.random()) # get real random number for cross validation
+    # choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
+    # alg = "dt" 
+    # add = 1
+    # alg = "srnc"
+    # real_random_number = int(1000000*random.random()) # get real random number for cross validation
     times = 1   
     df = pd.read_csv(fileName)
     XY= df.values
