@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -ARI_Sequential_Quick_Test- coding: utf-8 -*-
 """
 Created on Sat Mar  7 18:40:26 2020
 
@@ -24,8 +24,8 @@ from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 
-from eval_bisect_louvain import louvain_exact_K #import louvain clustering 
-#%%
+#from eval_bisect_louvain import louvain_exact_K #import louvain clustering 
+
 def LearnEpsilon(k, X, Y, choice):
     Knn_temp = NearestNeighbors(n_neighbors=k+2)
     Knn_temp.fit(X)
@@ -35,7 +35,7 @@ def LearnEpsilon(k, X, Y, choice):
         if choice == "mean":
             return np.mean(extrated_distances)
     else:
-        return float(choice)*np.min(extrated_distances) + (1-float(choice))*np.max(extrated_distances)
+        return choice*np.min(extrated_distances) + (1-choice)*np.max(extrated_distances)
 #%% Algorithm 1 
 def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, alg):
     X_train_temp =  np.copy(X_train)
@@ -129,17 +129,16 @@ def matchLabel(Y_labels, Y_ref):
     return Y_result
 
 #%%  # dataset: "pollen", "baron", "muraro", "patel", "xin", "zeisel"
-for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:  
+for prefixFileName in ["pollen"]:  
     fileName = "../Data/" + prefixFileName + "-prepare-log_count_100pca.csv"
     # choice = "mean",  choice = L \in [0,1]
     # alg = "srnc", alg = "svm", alg = "dt",  alg = "lr"
+    alg = "lr"
     choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
-    alg = "dt" 
     add = 1
-    alg = "srnc"
-    data_seed = int(sys.argv[1])
+#    data_seed = int(sys.argv[1])
     real_random_number = int(1000000*random.random()) # get real random number for cross validation
-    times = 1   
+    times = 10   
     df = pd.read_csv(fileName)
     XY= df.values
     X= XY[:,1:]
@@ -155,10 +154,10 @@ for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:
         # print("data_seed: ", data_seed)
         X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
         # run Louvain algorithm
-        n_clusters = int(len(np.unique(Y_test)))
-        print("n_clusters: ", n_clusters)
-        louvain_labels = louvain_exact_K(X_test, n_clusters)
-        ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
+#        n_clusters = int(len(np.unique(Y_test)))
+#        print("n_clusters: ", n_clusters)
+#        louvain_labels = louvain_exact_K(X_test, n_clusters)
+#        ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
         # Run internal cross validation to choose K and epsilon   
         Y_predict = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
         ARI_Srn_repeat_time = adjusted_rand_score(Y_predict, Y_test)
@@ -179,8 +178,8 @@ for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:
     print("fileName = ", str(prefixFileName), "choice = ", str(choice), "alg = ", str(alg), "add = ", str(add))
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
     df.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_dataseed_"+str(data_seed)+"_add_"+str(add)+"_eps_"+str(choice)+"_alg_"+str(alg)+".csv", index=False)
-    df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
-    df_lv.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
+#    df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
+#    df_lv.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
 
     # results_save = [[fileName]]
     # results_save += [["ARI_Knn_repeat_time"] + ARI_KNeighborsClassifier]

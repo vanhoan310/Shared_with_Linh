@@ -2,7 +2,7 @@
 """
 Created on Sat Mar  7 18:40:26 2020
 
-@author: v3_gammaTest
+@author: merge clusters 
 """
 
 from sklearn.datasets import make_classification
