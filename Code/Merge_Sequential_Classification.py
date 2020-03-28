@@ -64,7 +64,7 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, 
                 if min(Y[predict_set]) == max(Y[predict_set]):
                      y_predict =  min(Y[predict_set]) 
                 else:
-                    clf = svm.SVC().fit(X[predict_set], Y[predict_set])
+                    clf = svm.SVC(gamma='auto').fit(X[predict_set], Y[predict_set])
                     y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
                     y_predict = y_predict[0]
             if alg == "dt":
@@ -75,7 +75,7 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, 
                 if min(Y[predict_set]) == max(Y[predict_set]):
                      y_predict =  min(Y[predict_set]) 
                 else:
-                    clf = LogisticRegression(max_iter=1000).fit(X[predict_set], Y[predict_set])
+                    clf = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=10000).fit(X[predict_set], Y[predict_set])
                     y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
                     y_predict = y_predict[0]
             if add == 1:
@@ -141,7 +141,7 @@ for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:
     # alg = "srnc", alg = "svm", alg = "dt",  alg = "lr"
     # choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
     # alg = "dt" 
-    # add = 1
+    add = 1
     # alg = "srnc"
     # real_random_number = int(1000000*random.random()) # get real random number for cross validation
     times = 1   
@@ -164,6 +164,7 @@ for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:
         print("n_clusters: ", n_clusters)
         louvain_labels = louvain_exact_K(X_test, n_clusters)
         ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
+        print("done Louvain")
         # Run internal cross validation to choose K and epsilon   
         Y_predict = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
         ARI_Srn_repeat_time = adjusted_rand_score(Y_predict, Y_test)
