@@ -143,7 +143,7 @@ def matchLabel(Y_labels, Y_ref):
     return Y_result
 
 #%%  # dataset: "pollen", "baron", "muraro", "patel", "xin", "zeisel"
-for prefixFileName in ["pollen"]:  
+for prefixFileName in ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]:  
     fileName = "../Data/" + prefixFileName + "-prepare-log_count_100pca.csv"
     # choice = "mean",  choice = L \in [0,1]
     # alg = "srnc", alg = "svm", alg = "dt",  alg = "lr"
