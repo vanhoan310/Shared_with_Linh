@@ -16,7 +16,9 @@ import matplotlib.pyplot as plt
 def plot_figure(fig_name, ARI_overall_srnc, accuracy_srnc, recall_unknown_srnc,
             precision_unknown_srnc, F1_unknown_srnc, 
             ARI_overall_rejection, accuracy_rejection, recall_unknown_rejection, 
-            precision_unknown_rejection, F1_unknown_rejection, split_information_all):
+            precision_unknown_rejection, F1_unknown_rejection,
+            ARI_overall_semi, accuracy_semi, recall_unknown_semi, 
+            precision_unknown_semi, F1_unknown_semi, split_information_all):
     index = [str(i)+":"+str(split_information_all[i][0])+
              "/"+str(split_information_all[i][1])+"/"+str(split_information_all[i][2])+
              ":"+str(split_information_all[i][3])+"/"+str(split_information_all[i][4]) for i in range(len(ARI_overall_srnc))]
@@ -26,14 +28,18 @@ def plot_figure(fig_name, ARI_overall_srnc, accuracy_srnc, recall_unknown_srnc,
 #            'precision_unknown_srnc':       precision_unknown_srnc,
             'F1_sc (left)':              F1_unknown_srnc,
 #            'ARI_rejection':                ARI_rejection,
-            'accuracy_reject (right)':           accuracy_rejection,
+            'accuracy_reject (midle)':           accuracy_rejection,
 #            'precision_unknown_rejection':  precision_unknown_rejection,
-            'F1_reject (right)':         F1_unknown_rejection
+            'F1_reject (midle)':         F1_unknown_rejection,
+            #            'ARI_rejection':                ARI_rejection,
+            'accuracy_semi (right)':           accuracy_semi,
+#            'precision_unknown_rejection':  precision_unknown_semi,
+            'F1_semi (right)':         F1_unknown_semi
         }
 #    index = [str(i) for i in range(len(ARI_srnc))]
     df = pd.DataFrame(raw_data, index=index)
 #    ax = df.plot.bar(rot=0, color=['r', 'b', 'g', 'm', 'y' ,'r',  'b', 'g', 'm', 'y'], align='center', width=0.8, figsize=(16.0, 10.0))
-    ax = df.plot.bar(rot=0, color=['r', 'b','r',  'b'], align='center', width=0.8, figsize=(16.0, 10.0))
+    ax = df.plot.bar(rot=0, color=['r', 'b', 'g', 'r',  'b', 'g'], align='center', width=0.8, figsize=(16.0, 10.0))
     ax.autoscale(enable=True, axis='y', tight=True)
 #    ax.autoscale(tight=True)
     ax.axis()
@@ -109,6 +115,11 @@ for prefixFileName in ["pollen", "patel", "baron"]:
         precision_unknown_rejection_all = []
         F1_unknown_rejection_all = []
         split_information_all = []
+        ARI_overall_semi_all = []
+        accuracy_semi_all = []
+        recall_unknown_semi_all = []
+        precision_unknown_semi_all = []
+        F1_unknown_semi_all = []
         #for predictive_alg in ["svm", "lr", "LinearSVM"]:
         for data_seed in range(10):
             # predictive_alg: src", "svm", "dt",  alg = "lr", "sgd", "gb", "mlp", "LinearSVM", "lda"
@@ -136,6 +147,7 @@ for prefixFileName in ["pollen", "patel", "baron"]:
             true_labels	= list(df.loc[:,"true_labels"])
             predicted_labels_srnc = list(df.loc[:,"predicted_labels_srnc"])
             predicted_labels_rejection = list(df.loc[:,"predicted_labels_rejection"])
+            predicted_labels_semi = list(df.loc[:,"predicted_labels_semi"])
         #    predicted_labels_spectral = list(df.loc[:,"predicted_labels_spectral"])
             known_1_unknown_0_classes = list(df.loc[:,"known_1_unknown_0_classes"])	
             print("-------------------------------------------------------------------")
@@ -154,6 +166,15 @@ for prefixFileName in ["pollen", "patel", "baron"]:
             recall_unknown_rejection_all.append(recall_unknown_rejection_fold)
             precision_unknown_rejection_all.append(precision_unknown_rejection_fold)
             F1_unknown_rejection_all.append(F1_unknown_rejection_fold)
+            print("-------------------------------------------------------------------")
+            print("predicted_labels_semi")
+            ARI_overall_semi_fold, accuracy_semi_fold, recall_unknown_semi_fold, precision_unknown_semi_fold, F1_unknown_semi_fold = test_information(train_1_test_0_ids, true_labels, known_1_unknown_0_classes, predicted_labels_semi)
+            ARI_overall_semi_all.append(ARI_overall_semi_fold)
+            accuracy_semi_all.append(accuracy_semi_fold)
+            recall_unknown_semi_all.append(recall_unknown_semi_fold)
+            precision_unknown_semi_all.append(precision_unknown_semi_fold)
+            F1_unknown_semi_all.append(F1_unknown_semi_fold)            
+            print("-------------------------------------------------------------------")            
             data_size = len(known_1_unknown_0_classes)
             number_unknown_classe = np.unique([true_labels[i] for i in range(data_size) if known_1_unknown_0_classes[i] == 0]).shape[0]
             split_information = [known_1_unknown_0_classes.count(-1)/data_size, 
@@ -171,7 +192,9 @@ for prefixFileName in ["pollen", "patel", "baron"]:
         plot_figure(fig_name, ARI_overall_srnc_all, accuracy_srnc_all, recall_unknown_srnc_all,
                     precision_unknown_srnc_all, F1_unknown_srnc_all, 
                     ARI_overall_rejection_all, accuracy_rejection_all, recall_unknown_rejection_all, 
-                    precision_unknown_rejection_all, F1_unknown_rejection_all, split_information_all)
+                    precision_unknown_rejection_all, F1_unknown_rejection_all, 
+                    ARI_overall_semi_all, accuracy_semi_all, recall_unknown_semi_all, 
+                    precision_unknown_semi_all, F1_unknown_semi_all, split_information_all)
         
         # Note: run smaller shrink_parameter == 1
         # Note: run smaller threshold for rejection == 1
