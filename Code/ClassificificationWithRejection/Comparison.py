@@ -5,7 +5,7 @@ from SplitData import Spliter
 from LearnEmbeddingSpace import Embedding
 from RejectClassifierWithLocalAdjustment import ClassifierWithLocalAdjustment
 from RejectClassifier import Classifier
-import SemiClassifier
+from SemiClassifier import *
 #%%
 def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_neighbor,
                shrink_parameter, threshold_rejection, proportion_unknown, left_out_proportion, filter_proportion):

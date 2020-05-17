@@ -1,28 +1,33 @@
-# -*- coding: utf-8 -*-
 """
 Created on Sat Mar  7 18:40:26 2020
 
-@author: merge clusters 
+@author: v3_gammaTest
 """
 
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
+#from sklearn.datasets import make_classification
+#import matplotlib.pyplot as plt
+#from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import RadiusNeighborsClassifier
-import math
+#import math
 import sys
 import numpy as np
 from sklearn.model_selection import train_test_split
-import operator
+#import operator
 import random
 from random import choices
 from sklearn.metrics.cluster import adjusted_rand_score
 from sklearn.neighbors import NearestNeighbors
-from scipy.spatial import distance
+#from scipy.spatial import distance
 import pandas as pd
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import LinearSVC
+#from scipy.stats import bernoulli
+#from sklearn.preprocessing import MinMaxScaler
 
 from eval_bisect_louvain import louvain_exact_K #import louvain clustering 
 #%%
@@ -62,21 +67,6 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, 
         if len(predict_set)> 0:
             if min(Y[predict_set]) == max(Y[predict_set]):
                      y_predict =  min(Y[predict_set]) 
-<<<<<<< HEAD
-                else:
-                    clf = svm.SVC(gamma='auto').fit(X[predict_set], Y[predict_set])
-                    y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
-                    y_predict = y_predict[0]
-            if alg == "dt":
-                clf = DecisionTreeClassifier().fit(X[predict_set], Y[predict_set])
-                y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
-                y_predict = y_predict[0]
-            if alg == "lr":
-                if min(Y[predict_set]) == max(Y[predict_set]):
-                     y_predict =  min(Y[predict_set]) 
-                else:
-                    clf = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=10000).fit(X[predict_set], Y[predict_set])
-=======
             else:
                 if alg == "srnc":
                     y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
@@ -85,7 +75,8 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, 
                     if alg == "svm":
                         clf = svm.SVC().fit(X[predict_set], Y[predict_set])
                     if alg == "LinearSVC":
-                        clf = LinearSVC(max_iter=10000).fit(X[predict_set], Y[predict_set])
+                        # clf = LinearSVC(max_iter=10000).fit(X[predict_set], Y[predict_set])
+                        clf = LinearSVC().fit(X[predict_set], Y[predict_set])
                     if alg == "dt":
                         clf = DecisionTreeClassifier().fit(X[predict_set], Y[predict_set])
                     if alg == "rf":
@@ -96,7 +87,6 @@ def SequentialRadiusNeighborsClassifier(epsilon, X_train, X_test, Y_train, add, 
                         clf = LogisticRegression(max_iter=10000).fit(X[predict_set], Y[predict_set])
                     if alg == "mlp":
                         clf = MLPClassifier().fit(X[predict_set], Y[predict_set])
->>>>>>> df69040a1d05989eeffa15f3137c08852eeb77f9
                     y_predict = clf.predict(X_test[optimal_test].reshape(1, -1))
                     y_predict = y_predict[0]
             if add ==1:
@@ -153,26 +143,19 @@ def matchLabel(Y_labels, Y_ref):
     return Y_result
 
 #%%  # dataset: "pollen", "baron", "muraro", "patel", "xin", "zeisel"
-for prefixFileName in ["pollen"]:  
+for prefixFileName in [1]:  
+    datasets = ["pollen", "baron", "muraro", "patel", "xin", "zeisel"]
+    prefixFileName = datasets[int(sys.argv[2])]
+    print("Dataset: ", prefixFileName)
     fileName = "../Data/" + prefixFileName + "-prepare-log_count_100pca.csv"
-    data_seed = int(sys.argv[1])
-    choice = sys.argv[2]
-    if choice.isdigit():
-        choice = int(choice)
-    alg = sys.argv[3]
-    add = 1
-
     # choice = "mean",  choice = L \in [0,1]
     # alg = "srnc", alg = "svm", alg = "dt",  alg = "lr"
-    # choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
-    # alg = "dt" 
-<<<<<<< HEAD
+    choice = 0 #choice = 1 --> "min", choice = 0 --> "max",
     add = 1
-=======
->>>>>>> df69040a1d05989eeffa15f3137c08852eeb77f9
-    # alg = "srnc"
-    # real_random_number = int(1000000*random.random()) # get real random number for cross validation
-    times = 1   
+#    alg = "svm"
+    alg = "LinearSVC"
+    data_seed = int(sys.argv[1])
+    times = 1  
     df = pd.read_csv(fileName)
     XY= df.values
     X= XY[:,1:]
@@ -183,7 +166,8 @@ for prefixFileName in ["pollen"]:
     ARI_SequentialRadiusNeighborsClassifier = []
     ARI_louvain = []
     for repeat_time in range(times):
-        data_seed = repeat_time
+        data_seed += repeat_time
+#        data_seed = repeat_time
         print("data_seed:", data_seed)
         # print("data_seed: ", data_seed)
         X_train, X_test, Y_train, Y_test = SplitData(X, Y, random_seed=data_seed)
@@ -192,27 +176,34 @@ for prefixFileName in ["pollen"]:
         print("n_clusters: ", n_clusters)
         louvain_labels = louvain_exact_K(X_test, n_clusters)
         ARI_louvain.append(adjusted_rand_score(louvain_labels, Y_test))
-        print("done Louvain")
-        # Run internal cross validation to choose K and epsilon   
-        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
-        ARI_Srn_repeat_time = adjusted_rand_score(Y_predict, Y_test)
+        print("Louvain done!")
+        #Run internal cross validation to choose K and epsilon   
+        Y_predict_src = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
+        ARI_Srn_repeat_time = adjusted_rand_score(Y_predict_src, Y_test)
         ARI_SequentialRadiusNeighborsClassifier.append(ARI_Srn_repeat_time)
         ## Merge clusters
-        Y_predict = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
+        Y_predict_merge_clusters = SequentialRadiusNeighborsClassifier(epsilon_choice, X_train, X_test, Y_train, add, alg)
         print("merge label to match the ground truth")
-        Y_predict = matchLabel(Y_predict, Y_test)
-        ARI_Srn_merge_clusters_repeat_time = adjusted_rand_score(Y_predict, Y_test)
+        Y_predict_merge_clusters = matchLabel(Y_predict_merge_clusters, Y_test)
+        ARI_Srn_merge_clusters_repeat_time = adjusted_rand_score(Y_predict_merge_clusters, Y_test)
         ARI_merge_clusters.append(ARI_Srn_merge_clusters_repeat_time)
-        #print("-------------------------------------------------------------------")
+        print("-------------------------------------------------------------------")
+        print("number_of_true_class:", len(set(Y)))
+        print("number_of_test_class:", len(set(Y_test)))
+        print("number_of_cluster_Srn_repeat_time:", len(set(Y_predict_src)))
+        print("number_of_cluster_Srn_merge_clusters_repeat_time:", len(set(Y_predict_merge_clusters)))
+        print("-------------------------------------------------------------------")
         #print("ARI_Srn_repeat_time:", ARI_Srn_repeat_time)
         #print("ARI_Srn_merge_clusters_repeat:", ARI_Srn_merge_clusters_repeat_time)
-    print("===================================================================")
+        print("===================================================================")
     print("ARI_Srn               :", (ARI_SequentialRadiusNeighborsClassifier))
     print("ARI_Srn_merge_clusters:", ARI_merge_clusters)
     print("ARI_louvain           :", ARI_louvain)
-    print("===================================================================")
     print("fileName = ", str(prefixFileName), "choice = ", str(choice), "alg = ", str(alg), "add = ", str(add))
+    print("=================================DONE==================================")
     df = pd.DataFrame(data= {'ARI_Srn': ARI_SequentialRadiusNeighborsClassifier, 'ARI_Srn_merge_clusters': ARI_merge_clusters})
     df.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_dataseed_"+str(data_seed)+"_add_"+str(add)+"_eps_"+str(choice)+"_alg_"+str(alg)+".csv", index=False)
     df_lv = pd.DataFrame(data={'ARI_louvain': ARI_louvain})
     df_lv.to_csv("output/CV_0_Gamma_0/" +prefixFileName+ "_ARI_louvain_dataseed_"+str(data_seed)+".csv", index=False)
+    
+

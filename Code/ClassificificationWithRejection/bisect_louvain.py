@@ -84,7 +84,7 @@ def semi_louvain_exact_K(X_train, y_train, X_test, n_clusters):
     for i in range(len(y_train)):
         for j in range(len(y_train)):
             if y_train[i] == y_train[j]:
-                matrix_neighbors[i,j] = 1.0
+                matrix_neighbors[i,j] = 3.0
             else:
                 matrix_neighbors[i,j] = 0.0
                 
