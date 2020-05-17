@@ -39,7 +39,7 @@ def plot_figure(fig_name, ARI_overall_srnc, accuracy_srnc, recall_unknown_srnc,
 #    index = [str(i) for i in range(len(ARI_srnc))]
     df = pd.DataFrame(raw_data, index=index)
 #    ax = df.plot.bar(rot=0, color=['r', 'b', 'g', 'm', 'y' ,'r',  'b', 'g', 'm', 'y'], align='center', width=0.8, figsize=(16.0, 10.0))
-    ax = df.plot.bar(rot=0, color=['r', 'b', 'g', 'r',  'b', 'g'], align='center', width=0.8, figsize=(16.0, 10.0))
+    ax = df.plot.bar(rot=0, color=['r', 'b', 'r',  'b', 'r',  'b'], align='center', width=0.8, figsize=(16.0, 10.0))
     ax.autoscale(enable=True, axis='y', tight=True)
 #    ax.autoscale(tight=True)
     ax.axis()
