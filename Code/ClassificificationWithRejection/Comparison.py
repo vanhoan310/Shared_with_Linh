@@ -22,6 +22,7 @@ def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_nei
     spl =  Spliter(proportion_unknown = proportion_unknown, left_out_proportion = left_out_proportion, random_seed = data_seed)
     train_indices, test_indices, unknown_classes = spl.Split(X, y)
 # embedding features 
+    print("Unknown classes: ", set(unknown_classes))
 
     ids = [i for i in range(X.shape[0])]
     # run srnc
@@ -36,7 +37,7 @@ def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_nei
     predicted_labels_rejection = [y_predict_rejection[test_indices.index(i)] if i in test_indices else -1 for i in ids]
     #run SemiClassifier
     clf = SemiClassifier()
-    y_predict_SemiClassifier = clf.predict(X[train_indices], y[train_indices], X[test_indices], len(set(y)) + 1)
+    y_predict_SemiClassifier = clf.predict(X[train_indices], y[train_indices], X[test_indices], len(set(y)) + 3)
  #Saving results 
     train_1_test_0_ids = [1 if i in train_indices else 0 for i in ids]
     true_labels = [y[i] for i in ids]

@@ -26,7 +26,7 @@ class SemiClassifier:
         for c in np.unique(y_train):
             member = (y_train == c)
             center[c] = np.mean(X_train[member, ], axis = 0) # get center of class c 
-            radius[c] = (np.min(train_dist[member, member]) + np.max(train_dist[member, member]))/2.0
+            radius[c] = (np.min(train_dist[member, member]) + np.max(train_dist[member, member]))/4.0
 
         y_predict = np.array([0]*n_test)
         K = np.max(y_train) 

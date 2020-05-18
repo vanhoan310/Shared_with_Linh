@@ -16,7 +16,7 @@ class Classifier:
          
     def _fit(self, X, y):
         if self.predictive_alg == "SVM":
-            return svm.SVC(probability=True, max_iter=10000).fit(X, y) 
+            return svm.SVC(probability=True, max_iter=10000, gamma = 'scale').fit(X, y) 
         elif self.predictive_alg == "linearSVM":
             return LinearSVC(max_iter=1000000).fit(X, y)
         else:
