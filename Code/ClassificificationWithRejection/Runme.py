@@ -101,8 +101,9 @@ def test_information(train_1_test_0_ids, true_labels, known_1_unknown_0_classes,
 # df = pd.DataFrame({'speed': speed,  'lifespan': lifespan, 'lifespan_1':lifespan_1}, index=index)
 # ax = df.plot.bar(rot=0)
 # sys.exit()
-for prefixFileName in ["pollen", "patel", "baron","muraro", "xin", "zeisel"]:
-    for left_out_proportion in [0.0, 0.1, 0.9]:
+# for prefixFileName in ["pollen", "patel", "baron","muraro", "xin", "zeisel"]:
+for prefixFileName in ["pollen", "patel", "baron"]:
+    for left_out_proportion in [0.0, 0.1, 0.5, 0.9]:
     #    prefixFileName = "pollen"
         ARI_overall_srnc_all = []
         accuracy_srnc_all = []
