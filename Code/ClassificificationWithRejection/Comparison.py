@@ -23,6 +23,8 @@ def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_nei
     train_indices, test_indices, unknown_classes = spl.Split(X, y)
 # embedding features 
     print("Unknown classes: ", set(unknown_classes))
+    print(y[train_indices])
+    print(y[test_indices])
 
     ids = [i for i in range(X.shape[0])]
     # run srnc
