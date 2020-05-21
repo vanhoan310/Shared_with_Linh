@@ -102,7 +102,8 @@ def test_information(train_1_test_0_ids, true_labels, known_1_unknown_0_classes,
 # ax = df.plot.bar(rot=0)
 # sys.exit()
 # for prefixFileName in ["pollen", "patel", "baron","muraro", "xin", "zeisel"]:
-for prefixFileName in ["pollen", "patel", "baron"]:
+# for prefixFileName in ["pollen", "patel", "baron"]:
+for prefixFileName in ["pollen"]:
     for left_out_proportion in [0.0, 0.2, 0.5, 0.8]:
     #    prefixFileName = "pollen"
         ARI_overall_srnc_all = []
@@ -140,6 +141,7 @@ for prefixFileName in ["pollen", "patel", "baron"]:
             # filter_proportion = 5, 10, 15
             filter_proportion = 0
             methods = ["srnc", "reje", "semi"]
+            methods = ["semi"]
             Comparison.main(prefixFileName, data_seed, predictive_alg, embedded_option, control_neighbor, 
                             shrink_parameter, threshold_rejection, proportion_unknown, left_out_proportion, filter_proportion, methods)
             # compute results

@@ -29,7 +29,7 @@ class SemiClassifier:
             radius[c] = (np.min(train_dist[member, member]) + np.max(train_dist[member, member]))/4.0
 
         y_predict = np.array([0]*n_test)
-        K = np.max(y_train) 
+        K = np.max(y_train) + 10
         for cl in np.unique(test_predict_labels):
             closest_class = -1
             train_with_label_cl = y_train[train_predict_labels==cl]
