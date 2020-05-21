@@ -103,7 +103,7 @@ def test_information(train_1_test_0_ids, true_labels, known_1_unknown_0_classes,
 # sys.exit()
 # for prefixFileName in ["pollen", "patel", "baron","muraro", "xin", "zeisel"]:
 for prefixFileName in ["pollen", "patel", "baron"]:
-    for left_out_proportion in [0.0, 0.1, 0.5, 0.9]:
+    for left_out_proportion in [0.0, 0.2, 0.5, 0.8]:
     #    prefixFileName = "pollen"
         ARI_overall_srnc_all = []
         accuracy_srnc_all = []

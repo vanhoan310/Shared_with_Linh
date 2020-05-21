@@ -21,10 +21,10 @@ def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_nei
     y= Xy[:,0].astype(int)
     spl =  Spliter(proportion_unknown = proportion_unknown, left_out_proportion = left_out_proportion, random_seed = data_seed)
     train_indices, test_indices, unknown_classes = spl.Split(X, y)
-# embedding features 
+    # embedding features 
     print("Unknown classes: ", set(unknown_classes))
-    print(y[train_indices])
-    print(y[test_indices])
+    # print(y[train_indices])
+    # print(y[test_indices])
 
     ids = [i for i in range(X.shape[0])]
     # run srnc
@@ -40,7 +40,7 @@ def main(prefixFileName, data_seed, predictive_alg, embedded_option, control_nei
     #run SemiClassifier
     clf = SemiClassifier()
     y_predict_SemiClassifier = clf.predict(X[train_indices], y[train_indices], X[test_indices], len(set(y)) + 3)
- #Saving results 
+    # Saving results 
     train_1_test_0_ids = [1 if i in train_indices else 0 for i in ids]
     true_labels = [y[i] for i in ids]
     predicted_labels_semi = [y_predict_SemiClassifier[test_indices.index(i)] if i in test_indices else -1 for i in ids]
