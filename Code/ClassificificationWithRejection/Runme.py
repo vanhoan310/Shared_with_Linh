@@ -139,18 +139,26 @@ for prefixFileName in ["pollen", "patel", "baron"]:
         #    left_out_proportion = 0.0
             # filter_proportion = 5, 10, 15
             filter_proportion = 0
+            methods = ["srnc", "reje", "semi"]
             Comparison.main(prefixFileName, data_seed, predictive_alg, embedded_option, control_neighbor, 
-                            shrink_parameter, threshold_rejection, proportion_unknown, left_out_proportion, filter_proportion)
+                            shrink_parameter, threshold_rejection, proportion_unknown, left_out_proportion, filter_proportion, methods)
             # compute results
-            results_file_name = "results/"+prefixFileName+"-ARI-dataseed-"+str(data_seed)+"-predictive_alg-"+str(predictive_alg)+"-embedded_option-"+str(embedded_option)+"-shrink_parameter-"+str(shrink_parameter)+"-left_out_proportion-"+str(left_out_proportion)+".csv"
+            #load results
+            results_file_name = "results/"+prefixFileName+"-srnc-dataseed-"+str(data_seed)+"-predictive_alg-"+str(predictive_alg)+"-embedded_option-"+str(embedded_option)+"-shrink_parameter-"+str(shrink_parameter)+"-left_out_proportion-"+str(left_out_proportion)+".csv"
             df = pd.read_csv(results_file_name)
             train_1_test_0_ids = list(df.loc[:,"train_1_test_0_ids"])
             true_labels	= list(df.loc[:,"true_labels"])
             predicted_labels_srnc = list(df.loc[:,"predicted_labels_srnc"])
+            known_1_unknown_0_classes = list(df.loc[:,"known_1_unknown_0_classes"])	
+            #load results
+            results_file_name = "results/"+prefixFileName+"-reje-dataseed-"+str(data_seed)+"-predictive_alg-"+str(predictive_alg)+"-embedded_option-"+str(embedded_option)+"-shrink_parameter-"+str(shrink_parameter)+"-left_out_proportion-"+str(left_out_proportion)+".csv"
+            df = pd.read_csv(results_file_name) 
             predicted_labels_rejection = list(df.loc[:,"predicted_labels_rejection"])
+            #load results
+            results_file_name = "results/"+prefixFileName+"-semi-dataseed-"+str(data_seed)+"-predictive_alg-"+str(predictive_alg)+"-embedded_option-"+str(embedded_option)+"-shrink_parameter-"+str(shrink_parameter)+"-left_out_proportion-"+str(left_out_proportion)+".csv"
+            df = pd.read_csv(results_file_name) 
             predicted_labels_semi = list(df.loc[:,"predicted_labels_semi"])
         #    predicted_labels_spectral = list(df.loc[:,"predicted_labels_spectral"])
-            known_1_unknown_0_classes = list(df.loc[:,"known_1_unknown_0_classes"])	
             print("-------------------------------------------------------------------")
             print("predicted_labels_srnc")
             ARI_overall_srnc_fold, accuracy_srnc_fold, recall_unknown_srnc_fold, precision_unknown_srnc_fold, F1_unknown_srnc_fold = test_information(train_1_test_0_ids, true_labels, known_1_unknown_0_classes, predicted_labels_srnc)
